@@ -119,42 +119,7 @@ exports.getUserExpensesByDateRange = async (req, res) => {
   }
 };
 
-Expense.afterSave(async (expense) => {
-  const userId = expense.userId;
-  const totalAmount = await Expense.sum("expense_amount", {
-    where: { userId },
-  });
-  console.log("In After Save");
-  console.log(totalAmount);
 
-  await User.update(
-    {
-      total_expense_amount: totalAmount,
-    },
-    {
-      where: { user_id: userId },
-    }
-  );
-});
-
-Expense.afterDestroy(async (expense) => {
-  const userId = expense.userId;
-  const totalAmount = await Expense.sum("expense_amount", {
-    where: { userId },
-  });
-  console.log("In After Destroy");
-
-  console.log(totalAmount);
-
-  await User.update(
-    {
-      total_expense_amount: totalAmount,
-    },
-    {
-      where: { user_id: userId },
-    }
-  );
-});
 
 exports.getUserExpenses = async (req, res) => {
   try {
@@ -178,14 +143,26 @@ exports.getUserExpenses = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const totalPages = Math.ceil(user.Expenses.length / limit);
+    const totalExpensesOfUser= await Expense.count({
+      where: { userId },
+    });
+
+    const totalPages = Math.ceil(totalExpensesOfUser / limit);
+
+    const cpage = parseInt(page);
+
+    const nextPage = cpage < totalPages ? cpage + 1 : null;
+
+    const prevPage = cpage > 1 ? cpage - 1 : null;
 
     res.status(200).json({
-      totalItems: user.Expenses.length,
       totalPages: totalPages,
-      currentPage: parseInt(page),
+      currentPage: cpage,
+      totalExpensesOfUser: totalExpensesOfUser,
       totalAmount: user.total_expense_amount,
       expenses: user.Expenses,
+      nextPage: nextPage,
+      prevPage: prevPage,
     });
   } catch (error) {
     console.log(error);

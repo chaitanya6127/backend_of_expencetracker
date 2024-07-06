@@ -21,39 +21,32 @@ const Expense = sequelize.define("Expense", {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
-
-
-  createdAt: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-  },
 });
 
-User.hasMany(Expense, { foreignKey: 'userId' });
-Expense.belongsTo(User, { foreignKey: 'userId' });
 
-Category.hasMany(Expense, { foreignKey: 'categoryId' });
-Expense.belongsTo(Category, { foreignKey: 'categoryId' });
 
-// Expense.afterSave(async (expense) => {
-//   const userId = expense.UserUserId;
-//   console.log(userId);
+User.hasMany(Expense, { foreignKey: "userId" });
+Expense.belongsTo(User, { foreignKey: "userId" });
 
-//   const totalAmount = await Expense.sum("expense_amount", {
-//     where: { userId },
-//   });
-//   await User.update(
-//     { total_expense_amount: totalAmount },
-//     {
-//       where: { userId },
-//     }
-//   );
+Category.hasMany(Expense, { foreignKey: "categoryId" });
+Expense.belongsTo(Category, { foreignKey: "categoryId" });
+
+// Expense.afterCreate(async (expense) => {
+//   const user = await User.findByPk(expense.userId);
+//   await user.increment("total_expense_amount", { by: expense.expense_amount });
+// });
+
+// Expense.afterDestroy(async (expense) => {
+//   const user = await User.findByPk(expense.userId);
+//   await user.decrement("total_expense_amount", { by: expense.expense_amount });
+// });
+
+// Expense.afterUpdate(async (expense) => {
+//   const user = await User.findByPk(expense.userId);
+//   const previousAmount = expense.expense_amount;
+//   const newAmount = expense.expense_amount;
+//   const difference = newAmount - previousAmount;
+//   await user.increment("total_expense_amount", { by: difference });
 // });
 
 module.exports = Expense;
